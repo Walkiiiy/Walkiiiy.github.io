@@ -43,8 +43,9 @@ render_drafts: false
 post_asset_folder: false
 relative_link: false
 future: true
-syntax_highlighter: highlight.js
+syntax_highlighter: # highlight.js #moded  for mashrio
 highlight:
+  enable: false #add for mashrio
   line_number: true
   auto_detect: false
   tab_replace: ''
@@ -96,7 +97,7 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: mashiro
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
