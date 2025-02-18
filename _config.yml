@@ -4,7 +4,7 @@
 
 # Site
 title: Walkiiiy's blog
-subtitle: 'May AGI take the world.'
+subtitle: 'Welcome.'
 description: ''
 keywords:
 author: Joe Walker
@@ -96,7 +96,7 @@ ignore:
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: landscape
+theme: cactus
 
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
