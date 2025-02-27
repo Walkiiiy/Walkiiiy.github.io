@@ -103,3 +103,8 @@ theme: mashiro
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
   type: ''
+
+math:
+  engine: "katex"
+  enable: true
+

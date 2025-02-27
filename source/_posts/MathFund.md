@@ -10,133 +10,133 @@ tags:
 ## 3.模运算性质
 
 **(1) 自反性（Reflexivity）**
-\[
+$$
 a \equiv a \pmod{m}
-\]
-任何整数 \( a \) 对模 \( m \) 都与自己同余。
+$$
+任何整数 $ a $ 对模 $ m $ 都与自己同余。
 
 **(2) 对称性（Symmetry）**
-\[
+$$
 a \equiv b \pmod{m} \quad \Rightarrow \quad b \equiv a \pmod{m}
-\]
-如果 \( a \) 和 \( b \) 同余，则 \( b \) 和 \( a \) 也同余。
+$$
+如果 $ a $ 和 $ b $ 同余，则 $ b $ 和 $ a $ 也同余。
 
 **(3) 传递性（Transitivity）**
-\[
+$$
 a \equiv b \pmod{m}, \quad b \equiv c \pmod{m} \quad \Rightarrow \quad a \equiv c \pmod{m}
-\]
-如果 \( a \equiv b \) 且 \( b \equiv c \)，则 \( a \equiv c \)。
+$$
+如果 $ a \equiv b $ 且 $ b \equiv c $，则 $ a \equiv c $。
 
 ---
 
 ### **加法、减法和乘法的模运算**
 #### **(1) 加法**
-\[
+$$
 (a + b) \mod m = [(a \mod m) + (b \mod m)] \mod m
-\]
-\[
+$$
+$$
 a \equiv b \pmod{m}, \quad c \equiv d \pmod{m} \quad \Rightarrow \quad (a + c) \equiv (b + d) \pmod{m}
-\]
+$$
 
 #### **(2) 减法**
-\[
+$$
 (a - b) \mod m = [(a \mod m) - (b \mod m)] \mod m
-\]
-\[
+$$
+$$
 a \equiv b \pmod{m}, \quad c \equiv d \pmod{m} \quad \Rightarrow \quad (a - c) \equiv (b - d) \pmod{m}
-\]
+$$
 
 #### **(3) 乘法**
-\[
+$$
 (a \times b) \mod m = [(a \mod m) \times (b \mod m)] \mod m
-\]
-\[
+$$
+$$
 a \equiv b \pmod{m}, \quad c \equiv d \pmod{m} \quad \Rightarrow \quad (a \times c) \equiv (b \times d) \pmod{m}
-\]
+$$
 
 ---
 
 ### **幂运算（指数运算）**
-\[
+$$
 (a^b) \mod m = [(a \mod m)^b] \mod m
-\]
-**快速幂算法（Exponentiation by Squaring）**可用于高效计算 \( a^b \mod m \)。
+$$
+**快速幂算法（Exponentiation by Squaring）**可用于高效计算 $ a^b \mod m $。
 
-如果 \( a, b \) 互质，则有：
-\[
+如果 $ a, b $ 互质，则有：
+$$
 a^{\phi(m)} \equiv 1 \pmod{m}
-\]
-其中 **\( \phi(m) \)** 是欧拉函数。
+$$
+其中 **$ \phi(m) $** 是欧拉函数。
 
 ---
 
 ### **逆元运算（模逆）**
-如果 \( a \) 在模 \( m \) 下**可逆**，则存在整数 \( x \) 使得：
-\[
+如果 $ a $ 在模 $ m $ 下**可逆**，则存在整数 $ x $ 使得：
+$$
 a \times x \equiv 1 \pmod{m}
-\]
+$$
 **求模逆的方法：**
 - **扩展欧几里得算法（Extended Euclidean Algorithm）**
 - **费马小定理（仅对素数模有效）**：
-  \[
+  $$
   a^{-1} \equiv a^{p-2} \pmod{p}, \quad (p 为素数)
-  \]
+  $$
 
 ---
 
 ### **其他性质**
 #### **(1) 约简性质**
-\[
+$$
 (a + km) \mod m = a \mod m
-\]
-对任意整数 \( k \)，增加 \( m \) 的整数倍不会影响同余关系。
+$$
+对任意整数 $ k $，增加 $ m $ 的整数倍不会影响同余关系。
 
 #### **(2) 乘法消去律**
 如果：
-\[
+$$
 ac \equiv bc \pmod{m}
-\]
-且 \( c \) 与 \( m \) 互质（\( \gcd(c, m) = 1 \)），则可以消去 \( c \)：
-\[
+$$
+且 $ c $ 与 $ m $ 互质（$ \gcd(c, m) = 1 $），则可以消去 $ c $：
+$$
 a \equiv b \pmod{m}
-\]
+$$
 
 #### **(3) 乘法分配律**
-\[
+$$
 (a \times (b + c)) \mod m = [(a \times b) \mod m + (a \times c) \mod m] \mod m
-\]
+$$
 
 #### **(4) 负数模运算**
-\[
+$$
 (-a) \mod m = (m - (a \mod m)) \mod m
-\]
+$$
 
 ---
 
 ### **7. 重要定理**
 #### **(1) 费马小定理**
-若 \( p \) 为素数，且 \( a \) 不是 \( p \) 的倍数，则：
-\[
+若 $ p $ 为素数，且 $ a $ 不是 $ p $ 的倍数，则：
+$$
 a^{p-1} \equiv 1 \pmod{p}
-\]
+$$
 
 #### **(2) 欧拉定理**
-若 \( \gcd(a, m) = 1 \)，则：
-\[
+若 $ \gcd(a, m) = 1 $，则：
+$$
 a^{\phi(m)} \equiv 1 \pmod{m}
-\]
-其中 \( \phi(m) \) 是**欧拉函数**，表示小于 \( m \) 且与 \( m \) 互质的整数个数。
+$$
+其中 $ \phi(m) $ 是**欧拉函数**，表示小于 $ m $ 且与 $ m $ 互质的整数个数。
 
 #### **(3) 中国剩余定理（CRT）**
 如果：
-\[
+$$
 x \equiv a_1 \pmod{m_1}, \quad x \equiv a_2 \pmod{m_2}, \quad ... \quad x \equiv a_n \pmod{m_n}
-\]
-且 \( m_1, m_2, ..., m_n \) 互质，则可以唯一确定 \( x \)（模 \( M = m_1 m_2 ... m_n \)）。
+$$
+且 $ m_1, m_2, ..., m_n $ 互质，则可以唯一确定 $ x $（模 $ M = m_1 m_2 ... m_n $）。
 
 #### **(4) Wilson 定理**
-若 \( p \) 为素数，则：
-\[
+若 $ p $ 为素数，则：
+$$
 (p - 1)! \equiv -1 \pmod{p}
-\]
+$$
 building............
