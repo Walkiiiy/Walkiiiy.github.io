@@ -4,6 +4,7 @@ date: 2025-02-26 09:49:38
 tags:
 ---
 ## introduce：“Honeywords:Making Password-Cracking Detectable”by  Ari JuelsRonald and L. Rivest
+**蜜词机制的首次提出**
 ###  背景
 * 基本的口令保护机制有加盐、蜜罐（honeypot accounts）等，都是为了抵御彩虹表类攻击。
 * 加盐：常见的加盐方式为，在对密钥进行一次sha-256哈希后，拼接随机串，再进行一次md5哈希（其次序和哈希算法无关紧要）。配合使用慢哈希函数如PBKDF2，Scrypt，Argon2，能大幅增加彩虹表的构建成本和长度。但是有足够算力的攻击者拿到数据库中的随机串后，仍有可能进行暴力破解。并且并不能提供入侵检测。
@@ -65,4 +66,20 @@ aH73ks93
 
 
 ## problemDiscover:"A Security Analysis of Honeywords"by Ding Wang, Haibo Cheng, Ping Wang, Jeff Yan, Xinyi Huang
-building............
+**汪定教授通过10个真实世界的密码数据集（共 1.04 亿个密码）来评估蜜词系统的安全性,发现其安全性远不及预期,并提出相应改进方法.**
+### 背景:
+* 蜜词解决方案的提出
+* 即使加盐后的哈希密码表仍易被机器学习技术, GPU还原(**this poses no real obstacle for an attacker to recover them by an overwhelming percentage by using modern machine-learning based cracking algorithms**)而由于哈希操作可以离线进行,慢哈希函数无法造成实质性的阻碍.
+* 多数抗离线破解方案都基于对整个系统的改动,实施困难
+### 广泛猜测攻击TRAWLING GUESSING ATTACKS
+* 针对尾部修改等简单的蜜词生成方案
+* 使用Dodonew 数据集，将其拆分为 训练集（8.1M 条密码） 和 测试集（8.1M 条密码）
+##### Top-PW（Top Password）攻击:
+成功破解率29.29%～32.62%（比预期的 5% 高出 6 倍以上）
+* 从已泄漏的密码数据库中选取最常见的密码,哈希后比对并根据其常见程度进行排名
+* 若能针对每个用户分别构建排名,并归一化,则成功率还能上升:
+```
+NormPr(swi,1) = Pr(swi,1) / ΣPr(swi,j) (j=1~20)
+```
+### 高级广泛猜测攻击Advanced Trawling Guessing Attacks
+building.............
