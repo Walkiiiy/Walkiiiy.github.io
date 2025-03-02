@@ -81,5 +81,47 @@ aH73ks93
 ```
 NormPr(swi,1) = Pr(swi,1) / ΣPr(swi,j) (j=1~20)
 ```
+##### PCFG和Markov攻击:
+在以上基础上,使用已经泄漏的密码数据库对PCFG模型和Markov模型进行训练,PCFG能构造出密码的结构,Markov能预测密码字符走向,他们的猜测准确率分别能达到39.17%～50.23%和43.89%～55.72%.
 ### 高级广泛猜测攻击Advanced Trawling Guessing Attacks
+**Top-PW猜测无法应对复杂密码以及不常见密码**
+#####  无训练集密码概率模型
+* 通过分析蜜糖字的统计特征,而不是通过已经泄漏的密码数据集.
+* 通过不同的密码,用不同方法产生大量的蜜词,用全概率公式统计同一个蜜词在所有可能的密码的产生概率,并排序.
+* 核心公式:
+  $$
+Pr_{\text{PW}}(x) = k \cdot Pr_{\text{SW}}(x) - (k - 1) \cdot Pr_{\text{SW}}(T(x)) \cdot \frac{1}{|T(x)|}
+$$
+其中：
+- $ Pr_{\text{PW}}(x) $ 表示真实密码的概率。
+- $ Pr_{\text{SW}}(x) $ 表示蜜糖字的概率（可以通过蜜糖字分布计算）。
+- $ T(x) $ 表示蜜糖字集合。
+##### 反向PCFG和Markov攻击:
+* 不同于广泛猜测攻击中的PCFG和Markov,这里两种模型**不是用于猜测密码,而是在无训练集密码概率模型的基础上用于猜测蜜词**.
+* 当一个蜜词过于像蜜词时,那就不是密码.
+### 针对性猜测攻击（Targeted Guessing Attacks）
+**若攻击者获得了用户的个人信息（Personally Identifiable Information, PII） 并对单一用户进行针对性攻击,其成功率还能上升.**
+三种基于个人信息的攻击模型：
+##### **（1）TarList：目标列表攻击**
+- **构造 PII 相关密码列表**，包括常见模式：
+  - `John1987`
+  - `Alice@123`
+  - `Jacky87`
+- **对蜜糖字进行排名**，优先尝试 PII 相关的密码。
+
+##### **（2）TarPCFG：目标 PCFG 攻击**
+- 在普通 **PCFG 模型** 的基础上，**增加 PII 相关的规则**：
+  - `John` → `[N]`
+  - `1987` → `[B]`
+  - `John1987!` → `[N][B][S]`
+- **通过已有的密码数据学习这些规则，提高攻击效率**。
+
+##### **（3）TarMarkov：目标 Markov 攻击**
+- **对 PII 信息进行 Markov 训练**，识别常见字符组合：
+  - `Jacky87` → `Jacky8`（更可能的真实密码）
+- **利用 Markov 预测哪些蜜糖字最可能是真实密码**。
+
+**TarMarkov 方法的成功率最高，达 68.7%。**
+
+## Solution:"How to Attack and Generate Honeywords"by Ding Wang, Yunkai Zou, Qiying Dong,Yuanming Song,Xinyi Huang
 building.............
