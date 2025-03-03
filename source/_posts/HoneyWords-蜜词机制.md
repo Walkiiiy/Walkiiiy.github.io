@@ -1,6 +1,6 @@
 ---
 title: HoneyWords-蜜词与其生成机制浅析
-date: 2025-02-26 09:49:38
+date: 2025-03-03 09:49:38
 tags:
 ---
 ## introduce：“Honeywords:Making Password-Cracking Detectable”by  Ari JuelsRonald and L. Rivest
