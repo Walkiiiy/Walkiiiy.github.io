@@ -124,4 +124,17 @@ $$
 **TarMarkov 方法的成功率最高，达 68.7%。**
 
 ## Solution:"How to Attack and Generate Honeywords"by Ding Wang, Yunkai Zou, Qiying Dong,Yuanming Song,Xinyi Huang
-building.............
+**重点:如何根据不同的攻击类型,生成不同的蜜词?最合理的生成方案是什么?**
+| **攻击者类型** | **最优方法** | **使用的密码模型** | **如何生成蜜糖字** |
+|-------------|-----------|----------------|----------------|
+| **A1（基础攻击）** | **List-based Honeywords** | List | 直接从密码列表中选取 |
+| **A2（使用 PII）** | **TarList Honeywords** | TarList | 结合 PII 信息生成蜜糖字 |
+| **A3（使用用户注册顺序）** | **Hybrid: 1/3 List + 1/3 Markov + 1/3 PCFG** | List + Markov + PCFG | 结合多个模型，提高蜜糖字质量 |
+| **A4（最强攻击者：PII + 注册顺序）** | **Hybrid: 1/3 TarList + 1/3 TarMarkov + 1/3 TarPCFG** | TarList + TarMarkov + TarPCFG | 结合 PII 和注册顺序生成最难破解的蜜糖字 |
+
+---
+* List在这里值已经泄漏的真实密码数据库.
+* TarList是指结合用于个人信息PII后的List,大量的泄漏密码可以经过简单的分词后个人信息替换,形成TarList.
+* TarMarkov和TarPCFG并不是对每一个用户单独训练模型,而是训练全局模型,输入是用户的PII,输出为TarMarKov或TarPCFG蜜词.
+* **用户的注册顺序为什么会帮助到攻击者?**
+根据PCFG和Markov训练得来的蜜词表会受到历史用户的影响.如果攻击者知道某些密码在早期用户中从未出现，但却在某个新用户的蜜糖字列表中出现，那么这个密码很可能是真实密码.
