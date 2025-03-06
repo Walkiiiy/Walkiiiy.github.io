@@ -28,3 +28,11 @@ tags:
 **注意区分服务器证书公钥(长期)和密钥交换公钥(临时)**
 #### 4>结束握手
 双方通过Finished消息来结束握手.通过HMAC生成握手阶段所有消息的摘要并发送给对方,以实现完整性检测.
+
+## 附加安全策略
+* 为了防止ClientHello重放攻击,在密钥交换中双方各自生成一个随机数传给对方,真正的对称密钥是ECDH密钥和双方的随机数经过HKDF算法得到的.
+$$
+     MasterSecret = PRF(PreMasterSecret, "master secret", ClientRandom + ServerRandom)
+$$
+* 这样,即使重放ClientHello也无法得到同样的服务器端随机数,无法计算出共享密钥.
+* 另外还有会话ID,时间限制等策略.
