@@ -12,18 +12,19 @@ tags:
 上图中G为生成元.
 * 椭圆曲线加法:A+B即为连接AB两点找到该线与椭圆曲线的交点关于X轴对称点.A+A即为找到A切线与曲线交点关于X轴对称的点.nA即为重复该过程n次.
 ![ECCPlus](/images/ECCPluse.png)
-## ECC公钥加密(不常用)
+## ECC公钥加密
 如果ECC公钥加密,需要将明文转化为一个点P
 * 生成元G
 * Alice公钥Q=dG,私钥d
 #### **过程**
 * Bob向Alice发送加密后的P,选取一个随机数k,计算kQ,kG向Alice发送(P+kQ)和(kG)
 * Alice计算(P+kQ)-dkG得到p
-#### 加解密范式
+#### **加解密范式**
   $$
   P_M = P_M+k(dG) - d(kG)
   $$
-* 整体类似DH交换
+整体类似DH交换
+
 ## ECDH
 **DH推荐2048bit参数,而ECDH只要256bit**
 #### 步骤

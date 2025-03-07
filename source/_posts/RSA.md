@@ -10,11 +10,11 @@ tags:
 * 欧拉定理和欧拉函数,以及欧拉函数积性定理
 * 中国剩余定理
 ## 步骤:
-* ϕ(pq)=ϕ(p)*ϕ(q),用大质数p,q得ϕ(n)=ϕ(pq)=(p-1)*(q-1)
-* 选取小于n且与n互质的e
-* 计算e关于ϕ(n)的模反d
-* 公钥:(e,n);私钥(d,n)
-* 加解密式:(m^e mod n)^d mod n =m^ed mod n = m
+* $ϕ(pq)=ϕ(p)*ϕ(q)$,用大质数$p$,$q$得$ϕ(n)=ϕ(pq)=(p-1)*(q-1)$
+* 选取小于$n$且与$n$互质的$e$(保证模反元素d存在)
+* 计算$e$关于$ϕ(n)$的模反$d$
+* 公钥:$(e,n)$;私钥$(d,n)$
+* 加解密式:$(m^e \mod n)^d \mod n =m^{ed} \mod n = m$
 ## 结果证明:
 * 由模反,ed mod ϕ(n)=1,即ed=k*ϕ(n)+1
 * m^ed mod n = m^(k*ϕ(n)+1) mod n=(m modn )*(m^k*ϕ(n) modn) modn  (乘法模运算)
@@ -27,6 +27,12 @@ tags:
 * 非对称加密RSA PKCS#1v1.5(易受适应性选择密文攻击,根据RSA的扩展性)和RSA-OAEP
 * RSA PKCS#1v1.5签名和RSA-PSS签名
 * RSA密钥交换(公钥加密对称密钥后发送,私钥解密)
+## 主要攻击手段:
+* 百万消息攻击:针对RSA PKCS#1v1.5填充方式,利用了RSA加密的同态性:
+$$
+\text{如果 } C = M^e \mod n, \quad \text{那么 } (C \cdot r^e) \equiv (M \cdot r)^e \pmod{n}
+$$
+解决方案:签名时使用RSA-PSS,加密时使用RSA-OEAEP.
 ## 附:
 ### **RSA 解密时 $ M $ 是 $ p $ 的倍数的推导总结**
 ---
