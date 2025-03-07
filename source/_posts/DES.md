@@ -16,7 +16,7 @@ tags:
 
 ## **加密过程**
 DES 采用 **Feistel 结构**，核心是**轮函数（F 函数）**，加密过程如下：
-![main](/source/images/DES-main-network.png)
+![main](/images/DES-main-network.png)
 
 ### **（1）初始置换（IP，Initial Permutation）**
 - 对输入的 64 位明文进行固定的置换。
@@ -54,7 +54,7 @@ $$
 - $ K_i $ 是该轮的 48 位子密钥。
 
 **F 函数内部结构**
-![feistel](/source/images/feistel-DES-f-function.png)
+![feistel](/images/feistel-DES-f-function.png)
 1. **扩展置换（E 扩展）**
    - 把 32 位 $ R_i $ 扩展成 48 位，以便与子密钥 $ K_i $ 进行 XOR。
    - 通过 E 扩展表复制部分位（位数增加）：
@@ -88,7 +88,7 @@ $$
 ---
 
 ## **3. DES 密钥生成**
-![key-gen](/source/images/DES-key-schedule.png)
+![key-gen](/images/DES-key-schedule.png)
 ### **（1）密钥置换 PC-1**
 - 64 位密钥去掉 8 位奇偶校验位，得到 **56 位密钥**。
 
