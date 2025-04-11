@@ -1,14 +1,15 @@
 ---
-title: 文献阅读:规范化的错位属性值修复方法
+title: Swapping Repair for Misplaced Attribute Values
 date: 2025-04-11 11:33:07
 tags:
 ---
+**文献阅读:规范化的错位属性值修复方法**
 **From"Swapping Repair for Misplaced Attribute Values" by Yu Sun, Shaoxu Song, Chen Wang, Jianmin Wang**
 https://sxsong.github.io/doc/20icde.pdf
 #### 总览
 * 解决的问题：例如用户在填写表单时将“Passport”错误输入到“乘客姓名”属性，这种错误比较常见，如数据集成时因分隔符错误或OCR识别错误导致属性错位，传感器数据传输中因缺失值导致后续数据位移等，都会导致属性错位。
 * 现有方法：现有方法往往解决的是同一属性的问题**in-attribute errors**，而不是同一元祖内的属性错位**misplaced-attribute errors**。
-* 难点：直接使用相似度比对会出现合法的离群值outliner被错认为错误数据的情况。通过元祖内交换属性值（假设性）查看是否有与其他元组更高相似度的情况，如果有，则我们可以断言这是错位属性值。
+* 难点：直接使用相似度比对会出现合法的离群值outliner被错认为错误数据的情况。要设计一套成熟的方案，断言是否出现属性值错位，并通过元祖内交换属性值查看是否有与其他元组更高相似度的情况。
 #### 距离似然评估
 判断是否存在错位属性值需要修复
 ###### 错误的思路：通过值的概率分布计算相似度
