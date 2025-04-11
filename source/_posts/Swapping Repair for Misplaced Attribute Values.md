@@ -17,8 +17,7 @@ https://sxsong.github.io/doc/20icde.pdf
 ![Fewquency_and_knn](/images/Fewquency_and_knn.png)
 ###### 正确的思路：k近邻算法κ-nearest-neighbors (κ- NN ) 
 * 对元组$t_i$到某一近邻元组$t_j$的距离以曼哈顿距离归一化，建模：
-$$ Δ(ti [R], tj [R]) = ∑Δ(ti[A], tj [A])
-$$
+$$ Δ(ti [R], tj [R]) = ∑Δ(ti[A], tj [A])$$
 * $t_i$与其相邻元组的距离服从指数分布：
 $$
 f (Δ(ti , tj )) = λ e^{−λΔ(ti ,tj )}
