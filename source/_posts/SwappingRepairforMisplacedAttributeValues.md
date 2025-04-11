@@ -73,7 +73,7 @@ $$
 时间连续的数据集中，上下文的相关性可以用于数据纠错。但是在联合数据纠错与属性错位纠错时，要注意先进行属性错位纠错，再进行数据纠错。
 #### 将所有邻元组纳入计算
 当相邻元组的个数扩展到整个数据集大小r时，仍可以在多项式时间内求解最高相似度（最小距离）的交换方案，即将原问题转化为最小权重完美匹配问题minimum weight perfect matching (MWPM).
-###### SRAN算法:Swapping Repair with All Neighbors
+#### SRAN算法:Swapping Repair with All Neighbors
 构建二分图，将每个属性视为二分图的两部分顶点集合（左部U和右部V），每个属性在U和V中各有一个节点。边权为交换属性后的总距离。
 使用匈牙利算法解决该二分图的最小权重完美匹配：https://www.bilibili.com/video/BV16K4y1X7Ph/?share_source=copy_web&vd_source=275d46b9a03d7ce577d10c1f2bdb1206
 **理解过程中的错误：**
