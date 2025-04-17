@@ -3,6 +3,7 @@ title:
 layout: about
 ---
 #  
+![](/favicon.ico)
 # Walkiiiy
 ## Hi there 🌱,please contact me at:
 ```md
