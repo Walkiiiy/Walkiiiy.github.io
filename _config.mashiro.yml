@@ -2,7 +2,8 @@
 menu:
   Home: /
   Archives: /archives
-  # About: /about
+  Photography: /photography
+  About: /about
 
 # Content
 excerpt_link: Read More

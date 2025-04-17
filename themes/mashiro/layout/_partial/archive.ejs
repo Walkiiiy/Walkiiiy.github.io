@@ -11,6 +11,13 @@
         </div></section>
       <% } %>
       <% last = year; %>
+      
+      <div id="header-title">
+        <h1 id="logo-wrap">
+          <p id="logo">Archives</p>
+        </h1>
+      </div>
+
       <section class="archives-wrap">
         <div class="archive-year-wrap">
           <a href="<%- url_for(config.archive_dir + '/' + year) %>" class="archive-year"><%= year %></a>

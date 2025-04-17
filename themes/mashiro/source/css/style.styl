@@ -201,3 +201,38 @@ a
 
 if sidebar
   @import "_partial/sidebar"
+
+/* 添加这些样式到你的主题CSS文件中 */
+#header-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh; /* 视口高度 */
+  width: 100%;
+  text-align: center;
+}
+
+#header-title {
+  max-width: 90%; /* 防止在小屏幕上内容溢出 */
+  margin: 0 auto;
+}
+
+#logo, #subtitle {
+  display: block;
+  margin: 0.5rem 0;
+}
+
+/* 可选：添加一些响应式调整 */
+@media (max-width: 768px) {
+  #header-title {
+    max-width: 95%;
+  }
+  
+  #logo {
+    font-size: 2rem; /* 在小屏幕上减小字体大小 */
+  }
+  
+  #subtitle {
+    font-size: 1.2rem;
+  }
+}
