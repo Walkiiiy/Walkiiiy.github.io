@@ -4,9 +4,9 @@ date: 2025-04-22 19:15:31
 tags:
 ---
 **文献阅读:改进的S-repair数据清洗算法：从最小程度改变到保留最大数据密度**
+**From"From Minimum Change to Maximum Density: On S-Repair under Integrity Constraints" by Yu Sun，Shaoxu Song**
 ## 总览
 原始的S-repair数据清洗只要求删除尽可能少的数据以恢复完整性约束，实际应用中却可能有多种移除集方案都能满足。本研究提出了保留最大密度的选择方案，该方案是NP完全的，因此又进一步提出了多项式时间内可解的启发式解法作为近似解决方案，该解决方案在特殊情况下可实现多项式时间内返回最优解。
-**From"From Minimum Change to Maximum Density: On S-Repair under Integrity Constraints" by Yu Sun，Shaoxu Song**
 ## Pre_Definitions：
 * 给定一个关系模式 $ A = (A_1, \ldots, A_m) $，关系实例 $ I = \{t_1, \ldots, t_n\} $ 是模式 $ A $ 上的一组元组。每个元组 $ t_i $ 由属性值组成，即 $ t_i = \{t_i[A_1], t_i[A_2], \ldots, t_i[A_m]\} $，其中 $ t_i[A_j] $ 表示元组 $ t_i $ 在属性 $ A_j $ 上的值。
 * DC：Denial Constraint，以否定约束表示实例的完整性约束：
@@ -22,7 +22,7 @@ tags:
 即禁止两个元组在 `Load` 相同的情况下 `Count` 不同。  
 ## 最小程度改变的S-Repair
 ###### S-Repair(optimal subset repair)具体可参见'Computing Optimal Repairs for Functional Dependencies'by ESTER LIVSHITS and BENNY KIMELFELD
-![alt text](/images/load-count.png)
+![](/images/load-count.png)
 如图，当对地铁负载数与载人数建立函数依赖load->count时，会出现违反该函数依赖的脏数据$t_1, t_2, t_3, t_4, t_5, t_6$，若只要求删除的元组数量最少，则有不同的删除修复选择有：
 {$t_1, t_2, t_3, t_4, t_5, t_6$},
  {$t_0, t_2, t_3, t_4, t_5, t_6$}, 
