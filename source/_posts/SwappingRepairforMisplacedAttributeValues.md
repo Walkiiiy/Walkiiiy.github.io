@@ -6,16 +6,16 @@ tags:
 **文献阅读:规范化的错位属性值修复方法**
 **From"Swapping Repair for Misplaced Attribute Values" by Yu Sun, Shaoxu Song, Chen Wang, Jianmin Wang**
 https://sxsong.github.io/doc/20icde.pdf
-#### 总览
+## 总览
 * 解决的问题：例如用户在填写表单时将“Passport”错误输入到“乘客姓名”属性，这种错误比较常见，如数据集成时因分隔符错误或OCR识别错误导致属性错位，传感器数据传输中因缺失值导致后续数据位移等，都会导致属性错位。
 * 现有方法：现有方法往往解决的是同一属性的问题**in-attribute errors**，而不是同一元祖内的属性错位**misplaced-attribute errors**。
 * 难点：直接使用相似度比对会出现合法的离群值outliner被错认为错误数据的情况。要设计一套成熟的方案，断言是否出现属性值错位，并通过元祖内交换属性值查看是否有与其他元组更高相似度的情况。
-#### 距离似然评估
+## 距离似然评估
 判断是否存在错位属性值需要修复
-###### 错误的思路：通过值的概率分布计算相似度
+### 错误的思路：通过值的概率分布计算相似度
 通过实际数据集的比对就可以看出，简单通过属性值的概率分布是无法分辨outliner和错位值的（左图为属性值概率分布，右侧为使用k临近计算归一化距离）
 ![Fewquency_and_knn](/images/Fewquency_and_knn.png)
-###### 正确的思路：k近邻算法κ-nearest-neighbors (κ- NN ) 
+### 正确的思路：k近邻算法κ-nearest-neighbors (κ- NN ) 
 * 对元组$t_i$到某一近邻元组$t_j$的距离以曼哈顿距离归一化，建模：
 $$ Δ(ti [R], tj [R]) = ∑Δ(ti[A], tj [A])$$
 * $t_i$与其相邻元组的距离服从指数分布：
@@ -69,11 +69,10 @@ $$
 $$
 交换修复后 $\Theta(x) = 10.7 + 10.4 = 21.1$，远低于修复前的59.7。
 
-###### 联合修复流水线Joint Repair Pipeline
+### 联合修复流水线Joint Repair Pipeline
 时间连续的数据集中，上下文的相关性可以用于数据纠错。但是在联合数据纠错与属性错位纠错时，要注意先进行属性错位纠错，再进行数据纠错。
-#### 将所有邻元组纳入计算
+## SRAN基于所有邻居的修复算法:Swapping Repair with All Neighbors
 当相邻元组的个数扩展到整个数据集大小r时，仍可以在多项式时间内求解最高相似度（最小距离）的交换方案，即将原问题转化为最小权重完美匹配问题minimum weight perfect matching (MWPM).
-#### SRAN算法:Swapping Repair with All Neighbors
 构建二分图，将每个属性视为二分图的两部分顶点集合（左部U和右部V），每个属性在U和V中各有一个节点。边权为交换属性后的总距离。
 使用匈牙利算法解决该二分图的最小权重完美匹配：https://www.bilibili.com/video/BV16K4y1X7Ph/?share_source=copy_web&vd_source=275d46b9a03d7ce577d10c1f2bdb1206
 **理解过程中的错误：**
@@ -82,8 +81,7 @@ $$
 
 **原因：**
 SRAN，包括后面的SRKN本身就**只是针对一个元组进行优化**的，并不是检查并修复该数据集中的所有元组。在实际应用中，是**先通过距离判断某一元组出现问题后，再使用SRAN计算其最最优纠错方案**。
-
-#### SRKN固定邻居数量k修复算法：Fixed Number of Neighbors
+## SRKN固定邻居数量k修复算法：Fixed Number of Neighbors
 注意，选取前k个和$t_0$最邻近的不一定就是最优解！
 以下为具体步骤（AI总结）
 **步骤1：初始化**
@@ -105,8 +103,7 @@ SRAN，包括后面的SRKN本身就**只是针对一个元组进行优化**的�
 
 **步骤5：递归深入**
 • 递归调用：以 $ T' $ 和 $ S' $ 为参数，递归执行步骤2-4，直到遍历所有可能的κ邻居子集。
-
-#### SRFN固定邻居集合算法
+## SRFN固定邻居集合算法
 和SRKN类似，不同之处在于不枚举每一种集合，而是通过动态生成每一个元组的knn集合，生成候选集合组，在候选集合组内递归进行SRAN并剪枝优化。
 
 
