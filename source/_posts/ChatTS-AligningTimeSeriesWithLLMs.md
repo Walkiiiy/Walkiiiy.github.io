@@ -10,6 +10,7 @@ tags:
   * 改进了时间序列数据集生成策略Time Series Generator。
   * 拓展指令演化方法Evol-Instruct为TSEvol，生成高质量数据集问答内容，对模型微调。
   * 改进TimeLLM架构为ChatTS架构，拥有更强的数据分析通用性，拥有了多变量时间序列（MTS）相关性分析能力，并且拥有了回溯精确数据的能力。
+
 ![overview](/images/CharTS:overall.png)
 
 ## 背景与需求
@@ -29,7 +30,7 @@ tags:
 * 将时间序列的属性分为四类：趋势，周期性，噪声，局部波动（Trend, Periodicity, Noise, and Local Fluctuation）
 * 定义一个属性全集All attributes set，包含四种趋势，7种周期性，3种噪声，19种局部波动。
 * 定义单位集Metric Set，包含真实应用中的567种预定义单位。
-* 使用GPT选择符合符合预定义场景、单位的数据属性（使其更符合真实的物理应用场景），形成属性子集。
+* 使用GPT选择符合预定义场景、单位的数据属性（使其更符合真实的物理应用场景），形成属性子集。
 * 属性采样器随机从属性子集种抽取属性，并从GPT给定的合理单位中指定单位，指定合理的边界值，整体放入属性池Attribute Pool。
 ![TSGenerator](/images/ChatTS_TSGenerator.png)
 #### 时间序列生成器Time Series Generator
