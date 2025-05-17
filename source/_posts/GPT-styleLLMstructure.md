@@ -3,7 +3,7 @@ title: GPT-style LLM structure
 date: 2025-05-15 19:29:00
 tags:
 ---
-**基础Transfermer的纯解码器LLM与pytorch监督微调浅析**
+**基础Transfermer的纯解码器LLM浅析**
 常见的Llama,GPT,Grok都是基于纯解码器。 
 ![LLM](/images/LLM.jpg)
 ## Tokenize
