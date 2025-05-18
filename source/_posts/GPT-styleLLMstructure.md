@@ -4,7 +4,7 @@ date: 2025-05-15 19:29:00
 tags:
 ---
 **基础Transfermer的纯解码器LLM浅析**
-常见的Llama,GPT,Grok都是基于纯解码器。 
+常见的Llama,GPT都是基于纯解码器。 
 ![LLM](/images/LLM.jpg)
 ## Tokenize
 * 首先大小写转换，特殊字符处理，统一为Utf-8编码。
