@@ -48,6 +48,7 @@ from“Learning Transferable Visual Models From Natural Language Supervision”,
 ![MLLM_cross_attention](/images/MLLM_cross_attention.png)
 类似与transformer原本的翻译器结构，将transformer原本的text encoder替换为Clip图像编码器（仅有残差连接的自注意力层和MLP层，且自注意力层无掩码），送入原本解码器内的编码器-解码器注意力层，这个注意力层于是就被替换为图像-文本交叉注意力层。
 ![MLLM_CrossAttention](/images/MLLM_CrossAttention.png)
+
 ## Llama3.2 Vision
 https://www.bilibili.com/video/BV1QrBEY3Eax/?share_source=copy_web&vd_source=275d46b9a03d7ce577d10c1f2bdb1206
 * 图像编码器：
