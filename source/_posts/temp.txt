@@ -1,102 +1,35 @@
-
-#### ✦ 输入：
-
-* **脏数据集（dirty dataset）**：包含错误、缺失、不一致项的表格数据。
-
-#### ✦ 处理流程（4 个阶段）：
-
-1. **LLM-Based Context Model Generation**
-
-   * 使用大语言模型（如 GPT 或 LLaMA）对数据列名进行解析和建模；
-   * 生成具有语义结构的上下文模型（Context Model）；
-2. **OFDs Extraction**
-
-   * 从上下文模型中提取本体功能依赖（OFDs）；
-   * 这些依赖规则用于数据验证；
-3. **OFDs-Based Error Detection**
-
-   * 通过执行 OFD 检查，识别违反依赖规则的记录（即可能含错误的数据行）；
-4. **Error Correction**
-
-   * 将错误位置信息传入外部修复工具（如 Baran、HoloClean），自动生成修复建议。
-
-#### ✦ 输出：
-
-* **修复后的高质量数据集**，可用于下游 ML 应用。
+The paper defines **minhash** in the context of database profiling for estimating field similarity. Here's the extracted definition and explanation from the text:
 
 ---
 
-## 2.2 OFD Dependencies（本体功能依赖）
+### 📌 **Definition of Minhash (as per the paper):**
 
-LLMClean 支持以下 **七种 OFD 类型**，用于建模各种语义上下文：
-
-| OFD类型                        | 描述             | 示例说明                   |
-| ---------------------------- | -------------- | ---------------------- |
-| **Denial Dependency (DD)**   | 否定某些组合不可共存     | ¬(A=SensorX ∧ B=RoomY) |
-| **Matching Dependency (MD)** | 值相似 ⇒ 另一列值也应相似 | SensorName ∼→ Location |
-| **Device-Link Dependency**   | 传感器与设备绑定       | SensorA → DeviceB      |
-| **Temporal Dependency**      | 时间顺序依赖（A先于B）   | A → B ⇒ tA < tB        |
-| **Location Dependency**      | 设备与位置绑定        | DeviceA → Room1        |
-| **Monitoring Dependency**    | 设备被监控器实时跟踪     | A → CPU\_Load/NetSpeed |
-| **Capability Dependency**    | 传感器具备特定能力参数    | SensorX → Min/MaxValue |
-
-#### ✦ 举例说明：
-
-* 若两个记录中 SensingDevice 相同，但 Device 不同 ⇒ 违反了 Device-Link Dependency；
-* 若某传感器采集的温度值超出其最大值 ⇒ 违反 Capability Dependency。
+> A **minhash sketch** is a collection of $K$ values computed by:
+>
+> $$
+> mi(f) = \min(h_i(v_j) \mid \text{over all values } v_j \text{ of field } f)
+> $$
+>
+> for $i$ ranging from 1 to $K$, and each $h_i$ is a different hash function.
 
 ---
 
-## 2.3 数据集分类（Datasets Categorization）
+### 📊 **How Minhash Is Used:**
 
-LLMClean 首先根据列名对输入表格进行类型分类，决定构建哪种上下文模型：
+The **resemblance** between two fields $f$ and $g$ (denoted as $\text{res}(f, g)$) is approximated by:
 
-| 类型              | 说明                       | 支持的OFD                         |
-| --------------- | ------------------------ | ------------------------------ |
-| **IoT 数据集**     | 多为传感器读取，具备设备、位置、时间、能力等信息 | 7种OFD全支持                       |
-| **非-IoT 关系型数据** | 表格无设备语义，仅有实体字段（如医院名称、地区） | 仅 Denial 和 Matching Dependency |
+$$
+\text{res}(f, g) = \frac{1}{K} \sum_{i=1}^K \text{ if }(mi(f) = mi(g), 1, 0)
+$$
 
-#### ✦ 示例：
-
-* **IoT dataset**：如包含 `Sensor`, `Location`, `Value`, `Timestamp` 等列；
-* **Hospital dataset**：如 `HospitalName`, `ZipCode`, `State`, `PhoneNumber` 等结构。
+This allows fast approximation of **Jaccard similarity** between sets of field values.
 
 ---
 
-## 2.4 IoT 元上下文模型（见 Figure 2）
+### ✅ **Applications of Minhash Sketches in This Paper:**
 
-论文提供了一个 IoT 元模型（metamodel），用于支持 RDF 图建模与OFD规则自动生成：
+* **Finding join paths** between tables.
+* **Imputing metadata** from one field to another by identifying similar content.
+* **Efficient similarity search** in large datasets.
 
-* **核心实体与关系**：
-
-  * `ssn:System`：系统整体（如家庭监控平台）
-  * `ssn:Device`：包括感知/控制设备
-  * `ssn:Sensor`：每个传感器
-  * `iot-lite:Location`：物理部署点
-  * `iot-lite:Metadata`：能力参数
-  * `iot-context:Measurement`：采集值 + 时间
-  * `iot-context:MonitoringComponent`：设备监控单元
-
-#### ✦ 示例三元组：
-
-```
-<Sensor_1> <hasCapability> <MaxValue>
-<Device_1> <hasLocation> <Room1>
-<Sensor_1> <hasDeployment> <Device_1>
-```
-
----
-
-## ✳️ 本节重点总结
-
-| 组件          | 说明                          |
-| ----------- | --------------------------- |
-| **输入**      | 含噪声的结构化表格数据                 |
-| **核心流程**    | 上下文建模 → OFD提取 → 错误检测 → 错误修复 |
-| **OFD类型**   | 7种依赖，涵盖语义、结构、时空、设备能力        |
-| **数据类型支持**  | IoT数据支持全类型依赖，非IoT数据支持部分依赖   |
-| **上下文模型表示** | RDF图，基于 SSN 和 IOT-lite 本体   |
-
----
-
-如果你希望我进一步将这部分绘制成 **架构流程图、元模型图、OFD依赖关系图**，或者翻译为正式中英文对照版本，我可以继续处理。是否需要？
+Let me know if you want an illustrative example or how this technique is implemented in their schema linking system.
