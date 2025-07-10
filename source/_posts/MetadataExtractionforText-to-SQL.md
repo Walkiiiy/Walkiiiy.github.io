@@ -5,7 +5,27 @@ tags:
 ---
 **文献阅读：自动 sql filed description 提取，用以增强text2sql**
 **from"Automatic Metadata Extraction for Text-to-SQL"**
+## Overview
+```
+the most difficult part of writing correct SQL queries is
+understanding what is in the database to begin with
+```
+LLMs are good at writing sql querys, but can make mistakes for the lack of comprehension of the data's meaning.
+Examples of difficulties include:
+- Lack of documentation: In a large number of cases,the database lacks documentation – no field or table descriptions. The new database user has only cryptic field and table names for guidance. 
+- Incomplete or dated documentation: even with documentation, the content can be inaccurate due to the update of the databse itself.
+- Unclear data formats:even with the documentation, the format of the data field can still be unclear.
+- Multiple data formats: the data in fields can even be in different formats.
+- Default valus: unwanted default valus should be exclued while processing options like join, select to reduce time consumption.
 
+The system this paper gives can be concluded as:
+- make a profile base on statistics data of each field.
+- use the profile and simple description data to let LLM generate a detailed NL profile for every field.
+- apply LSH to every filed'sdata, combined with the NL profile above to build schema for every table.
+- when a question is given,first use a rather small sub-schema(for the whole schema can be too long to input LLM) for LLM to generate a sql query.
+- see the sql query's resemblance to the field's schema data.if there's other fields's schema resemble with the question, but this field is not in the sql query, make LLM generate again with refined prompt, adding the fields in it.
+- the step above can go k rounds.
+- use the ultimate set of fields(schema) to generte the final sql.
 ## Profiling
 ### 1.troditional profiling
 set statistics points like:
