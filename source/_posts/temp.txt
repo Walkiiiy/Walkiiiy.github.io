@@ -1,35 +1,84 @@
-The paper defines **minhash** in the context of database profiling for estimating field similarity. Here's the extracted definition and explanation from the text:
+Certainly! The paper introduces two key variants of **Retrieval-Augmented Generation (RAG)**: **RAG-Sequence** and **RAG-Token**. Both combine retrieval with generation, but they differ in **how retrieved documents are used during text generation**.
 
 ---
 
-### 📌 **Definition of Minhash (as per the paper):**
+## 🔁 RAG-Sequence vs. RAG-Token
 
-> A **minhash sketch** is a collection of $K$ values computed by:
->
-> $$
-> mi(f) = \min(h_i(v_j) \mid \text{over all values } v_j \text{ of field } f)
-> $$
->
-> for $i$ ranging from 1 to $K$, and each $h_i$ is a different hash function.
+### 🧱 Shared Structure
 
----
+Both models consist of:
 
-### 📊 **How Minhash Is Used:**
-
-The **resemblance** between two fields $f$ and $g$ (denoted as $\text{res}(f, g)$) is approximated by:
-
-$$
-\text{res}(f, g) = \frac{1}{K} \sum_{i=1}^K \text{ if }(mi(f) = mi(g), 1, 0)
-$$
-
-This allows fast approximation of **Jaccard similarity** between sets of field values.
+* A **retriever**: finds the top-*k* relevant documents (passages) given an input (query).
+* A **generator**: generates an output sequence (like an answer or sentence) conditioned on the input and the retrieved documents.
+* A **probabilistic formulation**: treats the retrieved documents as **latent variables** and marginalizes over them.
 
 ---
 
-### ✅ **Applications of Minhash Sketches in This Paper:**
+## 🧩 **1. RAG-Sequence Model**
 
-* **Finding join paths** between tables.
-* **Imputing metadata** from one field to another by identifying similar content.
-* **Efficient similarity search** in large datasets.
+### ➕ **Key Idea**:
 
-Let me know if you want an illustrative example or how this technique is implemented in their schema linking system.
+The **entire output sequence** is generated using the **same retrieved document**.
+
+### 🧠 How it works:
+
+* Retrieve top-*k* documents `z₁, z₂, ..., zₖ` for input `x`.
+* For each document `zᵢ`, compute the probability of generating output `y`:
+
+  $$
+  p(y | x, zᵢ)
+  $$
+* Final output probability is the **weighted sum** over all documents:
+
+  $$
+  p(y | x) = \sum_{z \in \text{top-k}} p(z|x) \cdot p(y|x, z)
+  $$
+* One **document is responsible** for the whole sequence during decoding.
+
+### 🟢 **Advantage**:
+
+* Simpler decoding and beam search.
+* More stable and efficient for short-form generation.
+
+---
+
+## 🧬 **2. RAG-Token Model**
+
+### ➕ **Key Idea**:
+
+Each **token** in the output can be generated using a **different retrieved document**.
+
+### 🧠 How it works:
+
+* For each output token `yᵢ`, compute:
+
+  $$
+  p(yᵢ | x, y₁:i₋₁) = \sum_{z \in \text{top-k}} p(z|x) \cdot p(yᵢ | x, z, y₁:i₋₁)
+  $$
+* This means the model dynamically chooses **which document** to use for each token.
+* More flexible: can pull from different documents while generating.
+
+### 🟢 **Advantage**:
+
+* Better for **long, complex, multi-fact outputs**, like Jeopardy-style questions or abstractive summaries.
+* Can mix knowledge from multiple sources within a single response.
+
+---
+
+## 🔁 Comparison Summary
+
+| Feature        | RAG-Sequence               | RAG-Token                            |
+| -------------- | -------------------------- | ------------------------------------ |
+| Document usage | Same doc for entire output | Different doc per token              |
+| Flexibility    | Moderate                   | High                                 |
+| Efficiency     | Faster decoding            | Slower, more computation             |
+| Use case       | QA, short generation       | Complex NLG, multi-source generation |
+
+---
+
+## ✅ In Practice
+
+* **RAG-Token** shows better performance on **Jeopardy question generation**, due to its flexibility.
+* **RAG-Sequence** performs well on tasks like **MS-MARCO QA** with less decoding overhead.
+
+Both models are trained **end-to-end**, with **latent document marginalization**, and show strong results across tasks.
