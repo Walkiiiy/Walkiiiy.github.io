@@ -5,6 +5,7 @@ tags:
 ---
 **original LSH schema-linking paper**
 **from"CHESS: CONTEXTUAL HARNESSING FOR EFFICIENT SQL SYNTHESIS"**
+code:https://github.com/ShayanTalaei/CHESS/
 ## Background
 - Even some of the largest proprietary models, such as GPT-4, lag significantly behind human performance on text-to-SQL benchmarks, with a notable accuracy gap of 40% 
 - main reason: caused by the need to effectively retrieve and integrate multiple sources of information
