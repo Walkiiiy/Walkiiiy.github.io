@@ -1,84 +1,103 @@
-Certainly! The paper introduces two key variants of **Retrieval-Augmented Generation (RAG)**: **RAG-Sequence** and **RAG-Token**. Both combine retrieval with generation, but they differ in **how retrieved documents are used during text generation**.
+Based on the content from the paper and the detailed description of the **CHESS (Contextual Harnessing for Efficient SQL Synthesis)** framework, here’s a more **accurate workflow** outlining how **LSH**, **edit distance**, and **embedding** are used together, as well as the sequence of operations in the **Information Retriever (IR)** agent:
+
+### **1. Workflow Overview (CHESS Framework)**
+
+The **CHESS** framework is a multi-agent system designed for **efficient SQL query generation** from natural language questions. The process is broken down into several key steps, with different agents specializing in different tasks.
+
+### **2. Information Retriever (IR) Agent Workflow**
+
+This agent plays a crucial role in **retrieving relevant data** and **context** from the database to inform the generation of SQL queries. The IR agent uses a **hierarchical retrieval method** involving **LSH**, **edit distance**, and **embedding similarity** to process the user’s query and extract the necessary database values and schema context.
 
 ---
 
-## 🔁 RAG-Sequence vs. RAG-Token
+### **Detailed Step-by-Step Workflow:**
 
-### 🧱 Shared Structure
+1. **Extract Keywords and Entities**:
+   The first step involves **extracting keywords** from the user’s natural language question. This is done using a **few-shot LLM call** to identify primary keywords and entities in the question.
 
-Both models consist of:
+2. **Retrieve Entities Using LSH**:
 
-* A **retriever**: finds the top-*k* relevant documents (passages) given an input (query).
-* A **generator**: generates an output sequence (like an answer or sentence) conditioned on the input and the retrieved documents.
-* A **probabilistic formulation**: treats the retrieved documents as **latent variables** and marginalizes over them.
+   * The **Information Retriever** queries the database to retrieve **relevant entities** based on the extracted keywords.
+   * **Locality Sensitive Hashing (LSH)** is employed in the **pre-processing stage** to **index database values** based on their similarity.
+   * During runtime, the agent queries the **LSH index** to find a small set of **top-k database values** that are most similar to the keyword, allowing for **fast retrieval** from a large dataset (millions of rows).
 
----
+3. **Refine Results with Embedding Similarity**:
 
-## 🧩 **1. RAG-Sequence Model**
+   * After retrieving the top-k values using LSH, **semantic similarity** is assessed using **embedding-based methods**.
+   * The **embeddings** (vector representations of database values and keywords) are used to measure the **semantic distance** between the query and the database values. This ensures that the results retrieved via LSH are **conceptually aligned** with the user’s query.
 
-### ➕ **Key Idea**:
+4. **Apply Edit Distance**:
 
-The **entire output sequence** is generated using the **same retrieved document**.
+   * Next, the **edit distance** is calculated between the extracted keywords and the candidate values from the database. **Edit distance** measures **syntactic similarity** and helps identify the best matches that might have minor typographical differences or alternative expressions.
 
-### 🧠 How it works:
+5. **Contextual Retrieval**:
 
-* Retrieve top-*k* documents `z₁, z₂, ..., zₖ` for input `x`.
-* For each document `zᵢ`, compute the probability of generating output `y`:
+   * The **IR agent** retrieves the relevant **context** from the database catalog, including **schema metadata** (e.g., column descriptions, relationships between tables, etc.). This context is retrieved using **embedding similarity**, ensuring that the most **semantically relevant** descriptions are included in the SQL query generation process.
+   * **Vector databases** store these **schema descriptions**, and the **IR agent** queries this database to fetch the most relevant context, based on semantic similarity.
 
-  $$
-  p(y | x, zᵢ)
-  $$
-* Final output probability is the **weighted sum** over all documents:
+6. **Final Data Selection**:
 
-  $$
-  p(y | x) = \sum_{z \in \text{top-k}} p(z|x) \cdot p(y|x, z)
-  $$
-* One **document is responsible** for the whole sequence during decoding.
-
-### 🟢 **Advantage**:
-
-* Simpler decoding and beam search.
-* More stable and efficient for short-form generation.
+   * Finally, the agent selects the most **relevant database values** (based on both **semantic** and **syntactic** criteria) and passes them along for SQL query generation by the **Candidate Generator (CG)**.
 
 ---
 
-## 🧬 **2. RAG-Token Model**
+### **3. Schema Selection Workflow (SS Agent)**
 
-### ➕ **Key Idea**:
+The **Schema Selector (SS)** agent helps manage large schemas by pruning unnecessary tables and columns, ensuring the data passed to the **Candidate Generator (CG)** is relevant and manageable, reducing computational overhead.
 
-Each **token** in the output can be generated using a **different retrieved document**.
+1. **Filter Columns**:
 
-### 🧠 How it works:
+   * The SS agent uses a **filter column** tool to determine whether a column is relevant to the current query. The decision is based on the query context, leveraging embedding similarity for column relevance.
 
-* For each output token `yᵢ`, compute:
+2. **Select Tables and Columns**:
 
-  $$
-  p(yᵢ | x, y₁:i₋₁) = \sum_{z \in \text{top-k}} p(z|x) \cdot p(yᵢ | x, z, y₁:i₋₁)
-  $$
-* This means the model dynamically chooses **which document** to use for each token.
-* More flexible: can pull from different documents while generating.
-
-### 🟢 **Advantage**:
-
-* Better for **long, complex, multi-fact outputs**, like Jeopardy-style questions or abstractive summaries.
-* Can mix knowledge from multiple sources within a single response.
+   * The SS agent identifies the most relevant **tables** and **columns** required for answering the query. It uses a combination of **semantic similarity** and **domain knowledge** to perform this task, ensuring that only the most important schema elements are retained for the query generation process.
 
 ---
 
-## 🔁 Comparison Summary
+### **4. Candidate Generation (CG) Agent Workflow**
 
-| Feature        | RAG-Sequence               | RAG-Token                            |
-| -------------- | -------------------------- | ------------------------------------ |
-| Document usage | Same doc for entire output | Different doc per token              |
-| Flexibility    | Moderate                   | High                                 |
-| Efficiency     | Faster decoding            | Slower, more computation             |
-| Use case       | QA, short generation       | Complex NLG, multi-source generation |
+The **Candidate Generator (CG)** generates and revises candidate SQL queries.
+
+1. **Generate Candidate Query**:
+
+   * The **CG agent** generates one or more candidate SQL queries based on the question, schema, and context retrieved earlier.
+   * The agent prompts the **LLM** with the required information to generate SQL queries.
+
+2. **Revise Candidate Queries**:
+
+   * The **CG agent** executes the generated queries and checks for errors, such as **syntax mistakes** or **empty results**.
+   * If necessary, the agent revises the queries iteratively until they produce valid results.
 
 ---
 
-## ✅ In Practice
+### **5. Unit Testing (UT) Agent Workflow**
 
-* **RAG-Token** shows better performance on **Jeopardy question generation**, due to its flexibility.
-* **RAG-Sequence** performs well on tasks like **MS-MARCO QA** with less decoding overhead.
+The **Unit Tester (UT)** agent ensures the final SQL query’s correctness.
 
-Both models are trained **end-to-end**, with **latent document marginalization**, and show strong results across tasks.
+1. **Generate Unit Tests**:
+
+   * The **UT agent** generates multiple **unit tests** designed to evaluate the validity of the candidate queries. These tests check whether the query properly answers the original question.
+
+2. **Evaluate Candidate Queries**:
+
+   * The **UT agent** evaluates each candidate query against the unit tests, scoring them based on their correctness.
+   * The highest-scoring candidate query is selected as the final query.
+
+---
+
+### **6. Final SQL Query Generation and Output**
+
+After the **Unit Tester (UT)** selects the best candidate query, it is returned as the final SQL query that answers the original user question. This query can then be executed on the database to retrieve the relevant data.
+
+---
+
+### **Summary of the Key Methods**:
+
+* **LSH** is used for **fast retrieval** of similar database values by creating an index based on similarity.
+* **Embedding similarity** ensures that semantically relevant data is included in the query generation process.
+* **Edit distance** refines results by checking **syntactic similarity** between the keywords and database values, handling typographical errors or alternative expressions.
+* The **Schema Selector (SS)** prunes the schema, keeping only the relevant parts.
+* The **Candidate Generator (CG)** creates and refines SQL queries, while the **Unit Tester (UT)** validates the generated queries.
+
+This workflow ensures that CHESS can handle large, complex databases efficiently while generating accurate SQL queries based on natural language questions.
