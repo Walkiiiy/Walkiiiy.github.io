@@ -1,103 +1,76 @@
-Based on the content from the paper and the detailed description of the **CHESS (Contextual Harnessing for Efficient SQL Synthesis)** framework, here’s a more **accurate workflow** outlining how **LSH**, **edit distance**, and **embedding** are used together, as well as the sequence of operations in the **Information Retriever (IR)** agent:
+In the **Tree-decoding with critique tokens** step of the **SELF-RAG** framework, the **segment score** plays a key role in ranking different possible continuations of a generated text at each step. The process involves generating multiple candidate outputs (or segments) for each step, and the **segment score** is used to determine which continuation is the best. This scoring is done based on the input, the retrieved documents, and the generated text up to that point.
 
-### **1. Workflow Overview (CHESS Framework)**
+### **Tree-Decoding Process Overview**:
 
-The **CHESS** framework is a multi-agent system designed for **efficient SQL query generation** from natural language questions. The process is broken down into several key steps, with different agents specializing in different tasks.
+1. **Retrieving Passages**:
 
-### **2. Information Retriever (IR) Agent Workflow**
+   * For each segment step, when the model decides that retrieval is necessary (based on reflection tokens), the **Retriever Model (R)** retrieves a set of relevant documents.
 
-This agent plays a crucial role in **retrieving relevant data** and **context** from the database to inform the generation of SQL queries. The IR agent uses a **hierarchical retrieval method** involving **LSH**, **edit distance**, and **embedding similarity** to process the user’s query and extract the necessary database values and schema context.
+2. **Generating Candidates**:
 
----
+   * The **Generator Model (M)** processes these retrieved documents in parallel, generating different candidate continuations for the output. These candidates represent different possible ways to continue the generation.
 
-### **Detailed Step-by-Step Workflow:**
+3. **Using Critique Tokens**:
 
-1. **Extract Keywords and Entities**:
-   The first step involves **extracting keywords** from the user’s natural language question. This is done using a **few-shot LLM call** to identify primary keywords and entities in the question.
+   * The **Critic Model (C)** generates **critique tokens** for each of these candidates. These critique tokens evaluate various aspects of the output, such as:
 
-2. **Retrieve Entities Using LSH**:
+     * **ISREL (Relevance)**: Whether the retrieved passages provide relevant information for the current output.
+     * **ISSUP (Support)**: Whether the generated segment is supported by the retrieved information.
+     * **ISUSE (Usefulness)**: How useful the generated segment is in relation to the task at hand.
 
-   * The **Information Retriever** queries the database to retrieve **relevant entities** based on the extracted keywords.
-   * **Locality Sensitive Hashing (LSH)** is employed in the **pre-processing stage** to **index database values** based on their similarity.
-   * During runtime, the agent queries the **LSH index** to find a small set of **top-k database values** that are most similar to the keyword, allowing for **fast retrieval** from a large dataset (millions of rows).
+4. **Ranking the Candidates**:
 
-3. **Refine Results with Embedding Similarity**:
+   * Once the critique tokens are generated, the **segment score** is calculated to rank the generated candidates.
 
-   * After retrieving the top-k values using LSH, **semantic similarity** is assessed using **embedding-based methods**.
-   * The **embeddings** (vector representations of database values and keywords) are used to measure the **semantic distance** between the query and the database values. This ensures that the results retrieved via LSH are **conceptually aligned** with the user’s query.
+### **Segment Score Calculation**:
 
-4. **Apply Edit Distance**:
+The segment score is a combination of the **generation probability** (which measures how likely a candidate continuation is according to the model) and the **critique scores** (which evaluate the quality and relevance of the generated text in relation to the retrieved passages). The segment score is calculated as follows:
 
-   * Next, the **edit distance** is calculated between the extracted keywords and the candidate values from the database. **Edit distance** measures **syntactic similarity** and helps identify the best matches that might have minor typographical differences or alternative expressions.
+1. **Generation Probability**:
 
-5. **Contextual Retrieval**:
+   * The model assigns a probability to each candidate continuation $y_t$ (the current segment in the sequence) based on the input, retrieved passages, and previous generations. This is the probability of generating a specific continuation given the context.
 
-   * The **IR agent** retrieves the relevant **context** from the database catalog, including **schema metadata** (e.g., column descriptions, relationships between tables, etc.). This context is retrieved using **embedding similarity**, ensuring that the most **semantically relevant** descriptions are included in the SQL query generation process.
-   * **Vector databases** store these **schema descriptions**, and the **IR agent** queries this database to fetch the most relevant context, based on semantic similarity.
+   $$
+   p(y_t | x, d, y<t)
+   $$
 
-6. **Final Data Selection**:
+   where:
 
-   * Finally, the agent selects the most **relevant database values** (based on both **semantic** and **syntactic** criteria) and passes them along for SQL query generation by the **Candidate Generator (CG)**.
+   * $x$ is the input prompt,
+   * $d$ is the retrieved passage,
+   * $y<t$ is the previously generated text (up to the current segment).
 
----
+2. **Critique Token Scores**:
 
-### **3. Schema Selection Workflow (SS Agent)**
+   * The critique tokens $C_{\text{critique}}$ (e.g., **ISREL**, **ISSUP**, **ISUSE**) provide a score for each candidate based on how well it aligns with the retrieved evidence. Each critique token is associated with a score, which evaluates the candidate's relevance, support, and utility. The sum of these scores is used to adjust the final ranking.
 
-The **Schema Selector (SS)** agent helps manage large schemas by pruning unnecessary tables and columns, ensuring the data passed to the **Candidate Generator (CG)** is relevant and manageable, reducing computational overhead.
+3. **Final Segment Score**:
 
-1. **Filter Columns**:
+   * The final segment score is a **weighted sum** of the generation probability and the critique scores for each critique token group. The segment score for a candidate $y_t$ and retrieved passage $d$ is computed as:
 
-   * The SS agent uses a **filter column** tool to determine whether a column is relevant to the current query. The decision is based on the query context, leveraging embedding similarity for column relevance.
+   $$
+   f(y_t, d, \text{Critique}) = p(y_t | x, d, y<t) + S(\text{Critique})
+   $$
 
-2. **Select Tables and Columns**:
+   where $S(\text{Critique})$ is the total score from the critique tokens, calculated as:
 
-   * The SS agent identifies the most relevant **tables** and **columns** required for answering the query. It uses a combination of **semantic similarity** and **domain knowledge** to perform this task, ensuring that only the most important schema elements are retained for the query generation process.
+   $$
+   S(\text{Critique}) = \sum_{G \in G_{\text{critique}}} w_G s_G(t)
+   $$
 
----
+   where:
 
-### **4. Candidate Generation (CG) Agent Workflow**
+   * $G_{\text{critique}}$ is the set of critique token groups (such as **ISREL**, **ISSUP**, **ISUSE**),
+   * $w_G$ is a weight assigned to each critique token group (which can be adjusted during inference),
+   * $s_G(t)$ is the score for the critique token group $G$ at time step $t$.
 
-The **Candidate Generator (CG)** generates and revises candidate SQL queries.
+   The **weights** $w_G$ control how much influence each critique aspect (e.g., relevance, support) has on the final segment score. For example, if the goal is to prioritize factual accuracy, the weight for **ISSUP** (support) can be increased.
 
-1. **Generate Candidate Query**:
+4. **Selecting the Best Candidate**:
 
-   * The **CG agent** generates one or more candidate SQL queries based on the question, schema, and context retrieved earlier.
-   * The agent prompts the **LLM** with the required information to generate SQL queries.
+   * After the segment score is calculated for all candidate continuations, the best candidate (i.e., the one with the highest segment score) is selected as the continuation for the current generation step.
 
-2. **Revise Candidate Queries**:
+### **In Summary**:
 
-   * The **CG agent** executes the generated queries and checks for errors, such as **syntax mistakes** or **empty results**.
-   * If necessary, the agent revises the queries iteratively until they produce valid results.
-
----
-
-### **5. Unit Testing (UT) Agent Workflow**
-
-The **Unit Tester (UT)** agent ensures the final SQL query’s correctness.
-
-1. **Generate Unit Tests**:
-
-   * The **UT agent** generates multiple **unit tests** designed to evaluate the validity of the candidate queries. These tests check whether the query properly answers the original question.
-
-2. **Evaluate Candidate Queries**:
-
-   * The **UT agent** evaluates each candidate query against the unit tests, scoring them based on their correctness.
-   * The highest-scoring candidate query is selected as the final query.
-
----
-
-### **6. Final SQL Query Generation and Output**
-
-After the **Unit Tester (UT)** selects the best candidate query, it is returned as the final SQL query that answers the original user question. This query can then be executed on the database to retrieve the relevant data.
-
----
-
-### **Summary of the Key Methods**:
-
-* **LSH** is used for **fast retrieval** of similar database values by creating an index based on similarity.
-* **Embedding similarity** ensures that semantically relevant data is included in the query generation process.
-* **Edit distance** refines results by checking **syntactic similarity** between the keywords and database values, handling typographical errors or alternative expressions.
-* The **Schema Selector (SS)** prunes the schema, keeping only the relevant parts.
-* The **Candidate Generator (CG)** creates and refines SQL queries, while the **Unit Tester (UT)** validates the generated queries.
-
-This workflow ensures that CHESS can handle large, complex databases efficiently while generating accurate SQL queries based on natural language questions.
+* The **segment score** combines two components: the **generation probability** of the current candidate continuation and the scores from the **critique tokens** (which evaluate relevance, support, and usefulness).
+* This score is used to rank different candidate continuations generated by the model at each step, ensuring that the most relevant and supported output is selected for the next segment of the generation process.
