@@ -190,3 +190,41 @@ SQLSE (m) → LSES (k) → SP prompt → T5 → SQL. No TED, no labels—just re
   -There are many different sequences that transform one tree into another. We assign a cost to each edit operation. Then, the cost of an edit sequence is the sum of the costs of its edit operations. Tree edit distance is the sequence with the minimal cost
 - the SQLse retriever uses a frozen Bert model with a additional trained prodection layer.
 - The R-GCN refers to Relational Graph Convolutional Network, used to encode the heterogeneous graph of the schema.
+
+## cross-entropy loss(CE) and noise constrasive estimation loss
+---
+
+### 🔹 **Cross-Entropy (CE) Loss**
+
+* **Use case**: Supervised learning (classification, sequence prediction).
+* **Setup**: You have a model outputting a probability distribution over classes (via softmax). You also have a *ground-truth label* (one-hot).
+* **Objective**: Minimize the negative log-likelihood of the true label.
+
+$$
+L_{CE} = - \log \frac{\exp(s_{y})}{\sum_{j}\exp(s_{j})}
+$$
+
+where $s_j$ are the logits and $y$ is the correct class.
+
+*“Push probability mass onto the correct label.”*
+
+---
+
+### 🔹 **InfoNCE Loss**
+
+* **Use case**: Contrastive/self-supervised learning (representation learning).
+* **Setup**: You don’t have labels. Instead, you define:
+
+  * **Anchor** representation $h_i$.
+  * **Positive sample** $h_i^+$ (a “true” match, e.g., augmented view of the same image, or structurally similar SQL).
+  * **Negative samples** $\{h_i^-\}$ (other data points in the batch).
+* **Objective**: Maximize similarity with positives, minimize similarity with negatives.
+
+$$
+L_{\text{InfoNCE}} = -\log \frac{\exp(\text{sim}(h_i, h_i^+)/\tau)}{\sum_{j}\exp(\text{sim}(h_i, h_j)/\tau)}
+$$
+
+where $\tau$ is a temperature.
+
+*“Among all candidates, treat the positive as the correct class and all others as negatives.”*
+ 
