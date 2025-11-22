@@ -1,0 +1,30 @@
+- Assumer：上周的base 41%，target rules92%，无rules 32% （arctic-sql 8b测试）
+- 两种新方法，基本解决生成rules的schema关键词错误：
+  - lossWeight tweaking: 
+    - 先SFT，让模型知道自己要生成的模式，loss降到0.3以后的训练吧schema关键词的token loss weight*3
+    - 测试集上loss效果明显，但生成的rules执行率只有48，而且会刻意生成无意义的schema关键词序列
+  - mimic SFT：
+    - 针对语义余弦相似度>0.7而执行效果不佳的数据强化训练
+    - 每一个batch先进行推理，然后调用Qwen3修改尽可能少关键字，做到语义完全相同而只有关键token被修改，然后用模仿来的序列微调并把loss调高
+    - 要同时跑微调和推理，本地服务器做不到，分为512条/batch加载checkpoint，最终执行率Bird升到52，但是Spider不升反降，不稳定 
+- 云服务器微调8b和30b模型：
+  - 对于8b模型qlora加载，本地输入序列最长3072，云服务器能达到最长序列长度5120
+  - 对于30b模型，本地调不了，云服务器A40最大输入1024
+- deepspeed本地模型并行尝试微调30b：
+  - 本地3090不支持deepspeed
+  - 在云服务器上（2*24g 4090）模型是并行了，但是原生不支持qlora，全量加载微调一样爆显存
+- NLQ模糊处理：
+  - schema关进字替换方案，Qwen3 8b执行，Qwen3 8b和Arctic-sql8b 测试，准确率掉3%
+  - 感觉准确率掉得不够多
+
+- 待测试方法：
+  - deepspeed 4bit量化加载
+  - 针对新的问题：assumer输入序列长度过长，考虑只保留关键schema信息训练：
+    - schema-linking（语义相似度+LSH）
+    - 提取关键列转NL-description
+  - code s生成测试
+  - NLQ模糊多跑几轮，继续掉正确率，然后测试加Assumer前后差距
+
+- 缺少一个用户正常使用场景下的标准，能说明用户的输入有多弱，bird_evidence有多强，以此进行对比
+  - 不清楚表格schema的情况下问出的问题
+- 加上evidence以后的强数据，加上生成的rules以后的效果应该也变强
