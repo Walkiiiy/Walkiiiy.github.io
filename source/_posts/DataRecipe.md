@@ -1,6 +1,6 @@
 ---
 title: DataRecipe
-date: 2026-02-15 21:10:27
+date: 2026-02-27 21:10:27
 tags:
 ---
 # Gradient Receipe: Evolving Selection-Proportion pipline into unified gradient optimization
@@ -233,11 +233,13 @@ $$ R_S(i, j) \leq \delta \cdot \max \left\{ 0, \frac{1}{\rho_{\min}} - 1 \right\
 ALG1 通过将 Lemma 1 的理论约束转化为“分裂-合并”的动态过程，解决了传统方法中粒度难控制的问题。该算法确保了生成的每个能力维度在梯度优化意义上都是“明确的”（Distinct），从而为后续的目标相关度映射（Mapping）和数据配方计算奠定了坚实的结构基础。
 
 
-### 4.2 模型能力-数据维度映射框架
+### 4.2 数据-能力映射
+
+<!-- **可以给横轴在加个分类，硬指标如准确性，初始高权重且无法被反馈信号更新** -->
 
 在 4.1 节的基础上，我们构建了与训练目标贴合的模型能力空间 $\mathcal{C}_{opt}$。但要在该空间中生成数据配方，必须将异构的原始数据点映射为该空间内的连续特征向量。
 
-现有基于嵌入模型（Embedding）或大型语言模型（LLM）的评估策略往往面临计算成本与评估深度的矛盾。为了统筹不同的数据评估策略并保证微调过程的高效性，我们首先规定统一的映射器标准，并在此基础上提出一种基于级联架构的语义相关度映射算法。
+现有基于嵌入模型或大型语言模型的评估策略往往面临计算成本与评估深度的矛盾。为了统筹不同的数据评估策略并保证微调过程的高效性，我们首先规定统一的映射器标准，并在此基础上提出一种基于级联架构的语义相关度映射算法。
 
 #### 4.2.1 映射器标准 (Standard for Capability Mappers)
 
@@ -340,16 +342,9 @@ $$r_{learn, j}(d) = \text{Sigmoid}\left(\frac{\delta_{CPD}^{(j)}(d) - \mu_j}{\si
 最终，映射器输出一个 $m$ 维稀疏特征向量 $\mathbf{r}_{learn} \in \mathbb{R}^m$。结合 4.2.2 节的语义相关度向量 $\mathbf{v}_d$，我们即可在 4.3 节中通过张量运算，精确刻画单条数据对目标模型的综合梯度影响。
 
 
-### 4.3 评估反馈-动态配方
-本节着重解决两个核心问题：
-1. 如何联合以上多种数据评估策略
-2. 如何反馈下游模型的实际训练效果到上游的评估策略
+### 4.3 基于梯度对齐的动态配方演化 (Dynamic Recipe Evolution via Gradient Alignment)
 
-....(权重矩阵构建)
-
-模型参数随训练过程动态变化，模型所需的数据类型也会随之变化，意味着权重矩阵需要随整个训练过程动态更新。并且由于该矩阵的信息量较大，这个动态更新必须由足够细粒度的训练反馈信号驱动。传统以batch为单位直接使用验证集进行反馈在这里不可行。
-
-为了解决以上问题，能从单条数据的粒度指导上游数据各评估策略的权重权重更新：
+<!-- 为了解决以上问题，能从单条数据的粒度指导上游数据各评估策略的权重权重更新：
 最初的能力空间构建使用的就是一个小验证集
 这个验证集实际参与构建的部分（参与层次聚类的干净数据）都属于上层的至少一个簇（也就是能力维度）
 对m个能力维度，每个都取其前k个最相关的数据，组成能力验证集（可以复用前面相关度映射结果）
@@ -357,74 +352,59 @@ $$r_{learn, j}(d) = \text{Sigmoid}\left(\frac{\delta_{CPD}^{(j)}(d) - \mu_j}{\si
 然后正式开始此batch的训练，训练时收集每条数据的梯度。本batch训练完用该梯度和每个能力维度的能力梯度的向量相似程度的top k（k由关联的能力维度数量动态决定）来计算该条数据的价值，作为反馈信号指导前面的评估策略权重阿尔法更新
 算法：
 ```
-```
+``` -->
+
+在多维度能力与多评估指标联合优化的数据配方框架中，使用静态权重矩阵难以适配模型在训练过程中的动态学习轨迹（Learning Dynamics）。本节提出一种基于细粒度梯度匹配（Fine-grained Gradient Matching）的在线配方演化机制，以实现评估权重的自适应更新，并将其演化轨迹用于离线的策略诊断。
+
+#### 4.3.1 在线配方：基于能力梯度的自适应更新 (Online Recipe: Adaptive Update via Capability Gradients)
+
+令 $\alpha^{(t)} \in \mathbb{R}^n$ 与 $\beta^{(t)} \in \mathbb{R}^m$ 分别表示训练步 $t$ 时的评估指标权重向量与能力维度权重向量。配方演化算法通过提取样本级梯度反馈，交替更新上述权重。为控制计算复杂度，所有梯度项均通过模型特定参数层（如 LoRA 适配器或最终投影层）的偏导数进行近似。
+
+**1. 能力锚点梯度提取与 $\beta$ 更新**
+基于 4.1 节构建的能力空间，从每个能力簇 $C_j$ 中均匀采样 $k$ 个高置信度样本构建锚点验证集 $V_{C_j}$。在批次 $B_t$ 训练前，计算模型在各验证集上的平均参数梯度：
+
+
+$$g_{C_j}^{(t)} = \nabla_\theta \mathcal{L}(V_{C_j}; \theta_t)$$
+
+
+梯度的 $L_2$ 范数 $||g_{C_j}^{(t)}||_2$ 刻画了模型在能力 $C_j$ 上的局部优化空间。据此，能力权重的在线更新规则定义为：
+
+
+$$\beta_j^{(t+1)} = \beta_j^{(t)} + \eta_\beta \cdot \frac{||g_{C_j}^{(t)}||_2}{\sum_{i=1}^m ||g_{C_i}^{(t)}||_2}$$
+
+
+其中 $\eta_\beta$ 为学习率超参数。更新后对 $\beta^{(t+1)}$ 进行 $L_1$ 归一化。
+
+**2. 样本级梯度匹配与奖励计算**
+在批次 $B_t$ 的前向传播中，记录单条数据 $d \in B_t$ 的近似参数梯度 $g_d = \nabla_\theta \mathcal{L}(d; \theta_t)$。定义数据 $d$ 的局部训练奖励 $R(d)$ 为其产生的梯度与对应关联能力梯度的平均余弦相似度：
+
+
+$$R(d) = \frac{1}{|K_d|} \sum_{j \in K_d} \frac{g_d^\top g_{C_j}^{(t)}}{||g_d||_2 ||g_{C_j}^{(t)}||_2}$$
+
+
+其中 $K_d$ 为 4.2 节中数据 $d$ 所映射的 Top-K 候选能力簇集合。
+
+**3. 基于指数加权的评估指标权重 $\alpha$ 更新**
+获取样本级奖励 $R(d)$ 后，采用乘法权重更新（Multiplicative Weights Update）算法对评估指标权重 $\alpha$ 进行演化。对于第 $i$ 个评估指标，其期望效用（Expected Utility）定义为该指标得分 $M_i^{(d)}$ 与真实奖励 $R(d)$ 的加权期望。权重 $\alpha_i$ 的更新规则为：
+
+
+$$\tilde{\alpha}_i^{(t+1)} = \alpha_i^{(t)} \cdot \exp\left( \gamma \cdot \mathbb{E}_{d \in B_t} \left[ R(d) \cdot M_{i}^{(d)} \right] \right)$$
+
+
+其中 $\gamma$ 为演化步长，$\tilde{\alpha}_i^{(t+1)}$ 为未归一化权重。最终的指标权重通过引入均匀分布参数 $\epsilon$ 进行熵正则化（Entropy Regularization）以防止权重坍缩：
+
+
+$$\alpha_i^{(t+1)} = (1 - \epsilon) \frac{\tilde{\alpha}_i^{(t+1)}}{\sum_{l=1}^n \tilde{\alpha}_l^{(t+1)}} + \frac{\epsilon}{n}$$
+
+#### 4.3.2 离线评估：基于权重轨迹的策略诊断 (Offline Evaluation: Metric Diagnosis via Weight Trajectory)
+
+上述在线更新机制生成了随训练步数 $t$ 变化的权重演化轨迹 $\mathcal{T} = \{ \alpha^{(t)}, \beta^{(t)} \}_{t=0}^T$。在单轮训练（Epoch）结束后，系统利用该轨迹集对上游的映射算子与数据分布进行离线诊断：
+
+1. **评估算子失效诊断 (Metric Failure Diagnosis)**：定义指标 $i$ 的全周期平均权重为 $\bar{\alpha}_i = \frac{1}{T}\sum_{t=1}^T \alpha_i^{(t)}$。若 $\bar{\alpha}_i < \tau_\alpha$（$\tau_\alpha$ 为失效阈值），表明该评估指标得分（如静态规则启发式得分）与模型的实际梯度优化目标长期不一致（即 $\mathbb{E}[R(d) \cdot M_i] \le 0$）。此信号用于触发上游映射算子的权重衰减或算法修正。
+2. **能力分布缺陷诊断 (Distribution Defect Diagnosis)**：对于能力维度 $j$，若其权重 $\beta_j^{(t)}$ 在训练后期无显著衰减且呈现单调上升趋势，同时对应的锚点验证损失 $\mathcal{L}(V_{C_j})$ 收敛停滞，则判定该维度的数据在原始语料库中存在信息熵不足或标注污染问题。此信号可作为后续迭代中定向数据合成（Data Synthesis）的指导分布依据。
+
+
+
 ## Experiment
 
-
-
-
-<!-- 
-## Legacy
-- **Intro**
-- 从四个角度切入问题
-  - proportion only方法是第一个切入角度：
-    - How can they be sure if the default domain clustering is best? 怎么就敢确定默认领域划分就是最好的？
-    - 没有好的划分就没有好的配比,划分-配比应该是联合优化问题
-  - Shallow Clustered by Skills是第二个切入角度：
-    - 浅聚类在默认语义向量下，默认会以垂直技能角度划分数据，凭什么假定从默认空间表示的角度（技能）划分是最好的？
-	  - 应该在每一轮训练时，模型需要从哪个角度划才怎么划(用深度聚类捕捉聚类的不同角度)
-  - One more step: Why one angle at a time? 是第三个切入角度
-    - 为什么要固定同一批数据只能有唯一的最优聚类角度？
-    - 应该不同角度，多层次聚类
-  - 性能和划分-配比粒度是第四个切入角度
-
-- 本研究认为：
-  - 聚类和配比应该是动态绑定的，在训练过程中一起更新动态迭代，对数据选择过程来说同属于一个原子操作
-- 由此提出自顶向下的聚类配比树作为新的解决方案（拟），希望同时解决：
-    - 1. 数据的划分-配比联合优化
-    - 2. 找到每一批次数据最优划分角度下的深度聚类（新）
-    - 3. 同一批次数据能有不同角度的多层聚类（新）
-    - 4. 性能问题
-
-
-
-- **Related works**:
-    - Proportion:
-        - Proportion only:
-            - DoReMi: Optimizing Data Mixtures Speeds Up Language Model Pretraining
-                - NeurIPS 2023
-                - Small model simulating a LLM's preferanced training proportion
-                - No ganrante that small model has same preferance as a big model
-            - DATA MIXING LAWS: OPTIMIZING DATA MIXTURES BY  PREDICTING LANGUAGE MODELING PERFORMANCE
-                - ICLR 2025
-        - Fixed semantic clustering & Proportion:
-            -  CLIMB: CLustering-based Iterative Data Mixture Bootstrapping for Language Model Pre-training
-                - Nvidia https://research.nvidia.com/labs/lpr/climb/
-            -  R&B: Breaking the Data Mixing Bottleneck with Just 0.01% Overhead
-                - ICML dig-bug long 2025
-             
-- **Problem formation**:
-
-
-
-    **Given:**
-    1.  A dataset, \( D \), which is un-categorized or less-categorized.
-    2.  A downstream fine-tuning task \( \mathcal{T} \) with a loss function \( \mathcal{L}_{\mathcal{T}} \).
-
-    **Define:**
-    - Let \( \mathcal{S} \) be a **clustering strategy**. This strategy includes both:
-        -  The number of clusters \( k \).
-        -  A set of deep clustering model parameters \(ϕ\).
-    
-        The strategy takes the dataset \( D \) and ouputs The resulting domains (clustering) of the data, \( D_{\theta} = \{C_1, C_2, ..., C_k\} \).
-    - Let \( \mathcal{A} \) be the space of all possible such clustering strategies.
-
-    **Objective:**
-    $$
-     \min_{m,s} \min_{p^1...p^m-1} \mathcal{L_{eval}} 
-    $$
-    **Mathematical Formulation:**
-
-
- -->
 
